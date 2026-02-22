@@ -1,7 +1,7 @@
 ---
 title: Modifying the Thinkpad 13 Gen 1 to unlock its full PCIe potential
 date: 07/08/2024
-description: Modified Thinkpad 13 Gen 1 to work with PCIe-NVMe SSDs
+description: How i modified a Thinkpad 13 Gen 1 to work with PCIe NVMe SSDs
 ---
 
 # Modifying the Thinkpad 13 Gen 1 to unlock its full PCIe potential
@@ -21,9 +21,8 @@ We later discovered that the specsheet listed SATA m.2 as the only [storage opti
 
 So enough talking done, i got to disassembling the laptop and getting down to desolder two capacitors, C224 and C237, and bridging them with some magnet wire,
 it was kind of difficult but nothing some flux and holding a steady hand can't fix.  
-![image](https://github.com/bassusteur/thinkpad13nvme/blob/main/images/632d38f63c54eab7.jpg?raw=true)   
+![image](https://github.com/bassusteur/thinkpad13nvme/blob/main/images/632d38f63c54eab7.jpg?raw=true)
 The end result isn't exactly eye candy but that's not what matters, what matters is that it works!
-
 
 Or.. not, Laptop reassembled, with a drive chucked from my main machine, i tried booting it up but no luck the drive would not show up in the bios entries nor linux, 
 though as a tip from my friend i would apparently also need to bridge two other pads [(PEDET and GND)](https://github.com/bassusteur/thinkpad13nvme/blob/main/images/image1.png) for the SSD to be detected, because despite the components being present on the boardview and schematic they were not ultimately placed during assembly.
@@ -41,8 +40,6 @@ Update 30/09/2024:
 Booting from NVMe actually works, my initial mistake was not performing a clean install through the laptop, here's a few images showing it booting and a drive speed benchmark:
 
 ![image](https://raw.githubusercontent.com/bassusteur/thinkpad13nvme/refs/heads/main/images/IMG_20240910_115838.jpg)![image](https://raw.githubusercontent.com/bassusteur/thinkpad13nvme/refs/heads/main/images/IMG_20240910_132825.jpg)![image](https://raw.githubusercontent.com/bassusteur/thinkpad13nvme/refs/heads/main/images/IMG_20240910_181639.jpg)
-
-
 
 
 One last thing to notice is: the extra pcie lanes going to the slot all have capacitors that have not been populated, so if you wanted a speedier link you would have [to solder them on as well](https://github.com/bassusteur/thinkpad13nvme/blob/main/images/355956864-ed5a1132-19c0-49bc-9205-d89726f15a3b.png).

@@ -6,7 +6,7 @@ draft: false
 ---
 
 ### A disclaimer:
-The first section of this post will provide some context about the xbox 360 and how the hacking scene evolved over the years, if you want to go straight to the point jump to [Viper Dual NAND V2 reversing].
+The first section of this post will provide some context about the xbox 360 and how the hacking scene evolved over the years, if you want to go straight to the point you can jump to "So, why Tulip?".
 
 # A bit(e) of Xbox 360 history 
 The Xbox 360, released by Microsoft in 2005, veers off from its predecessor's design - the original XBOX, which is based on x86 and is similar to a desktop pc of the time - whereas the 360 completely switches architectures, choosing PowerPC instead, and utilizes embedded solutions for its power-path and IO handling. 
@@ -35,7 +35,7 @@ Each block is programmable, using its own machine language with 32 instructions 
 This whole system is neat as it allows us to do things *very fast* and offload work from the CPU cores, we could use the PIOs to bitbang SPI and flash the xbox, which leaves room for the two cores to handle USB and other tasks for example!
 
 ## Reversing and design constraints
-![](./Pasted%20image%2020251224165221.png)
+![The viper dualnand v2 as seen from the front](./Pasted%20image%2020251224165221.png)
 Our work begins with reversing the Viper Dual NAND v2, the board looks quite barebones but 
 there's a lot going on here, to start off let's list the components:
 
@@ -44,21 +44,20 @@ there's a lot going on here, to start off let's list the components:
 - U3 is is likely a linear voltage regulator
 - Q1, a BJT transistor
 
-we can quite clearly see the traces utilized by the NAND and what signals they carry - as they're labelled accordingly, IO/* signals are parallel data lines, and the rest are signals used to control transactions between the console and the memory chip.
-The main power is drawn from the console itself, specifically from the 3.3v standby line - always active even before power-on, U3 is placed in case we're powering a glitch chip which is only necessary in older console revisions.
+We can quite clearly see the traces utilized by the NAND and what signals they carry - as they're labelled accordingly, IO/* signals are parallel data lines, and the rest are signals used to control transactions between the console and the memory chip.
+Power is drawn from the console itself, specifically from the 3.3v standby line - always active even before power-on, U3 is placed in case we're powering a glitch chip which is only necessary in older console revisions.
 
 In my design, i kept the viper v2's general ideas and expanded on them as needed, starting with the RP2040 which will handle all the flashing tasks interacting with both the onboard NAND and the modchip's NAND. I added flash memory for the rp2040, an LED for debugging, a reset button and a power LED.
 
 ![](./Pasted%20image%2020260124215728.png)![](./Pasted%20image%2020260124220343.png)
 
-You can clearly see the compromises i had to make due to the board being taller, i've broken out UART/USB and SWDIO to test points, and the holes in the board aren't there just for show as they're making space for components present on the Xbox mainboard. While working on the board i placed a high-resolution scan of the xbox 360 below the layout as an aid for this purpose, and to adjust the solder points along the bottom. Switching between the NAND chips is kept isolated from the microcontroller through the use of a PNP transistor. 
+You can clearly see the compromises i had to make due to the board being taller, like the extra holes in the board which are there to make space for the xbox's components. While working on the board i placed a high-resolution scan of the xbox 360 below the layout as an aid for this purpose, and to adjust the solder points along the bottom.
 
-## The first revision
-The first revision of the board, didn't go as planned.
+During the first revision run of the board [localcc](https://github.com/localcc) spent countless hours working on the firmware, which you can find on [Github](https://github.com/localcc/flasher) in a still unpolished but working state.
+After which we ordered a second revision with all the changes required to test all features about a month later, here it is shown mounted to the xbox mainboard.
+![](./dualnand-v2-testing.jpg)
+Unfortunately the mainboard shown in this picture is now dead, and we didn't buy a new one until a month or so later which is why development kinda halted.
 
-
-// forgot uart pads :sob:
-// scrapped dinosaur revision (for easier soldering)
 
 [^1]: A PCB layout file, opened by specialized software, which contains information about its components, used signals and their names, test points and more
 [^2]: http://www.cygnos360.com/

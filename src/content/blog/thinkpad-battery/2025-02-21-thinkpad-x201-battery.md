@@ -5,11 +5,11 @@ description: Original x201 battery inside pictures, because i couldn't find any 
 ---
 
 # Thinkpad x201 original battery insides
-![image](/assets/images/x201bat/DSC_0495.jpg)
-![image](/assets/images/x201bat/DSC_0496.jpg)
-![image](/assets/images/x201bat/DSC_0497.jpg)
-![image](/assets/images/x201bat/DSC_0498.jpg)
-![image](/assets/images/x201bat/DSC_0499.jpg)
-![image](/assets/images/x201bat/DSC_0500.jpg)
-![image](/assets/images/x201bat/DSC_0501.jpg)
-![image](/assets/images/x201bat/PXL_20250221_134545151.jpg)
+![image](./DSC_0495.jpg)
+![image](./DSC_0496.jpg)
+![image](./DSC_0497.jpg)
+![image](./DSC_0498.jpg)
+![image](./DSC_0499.jpg)
+![image](./DSC_0500.jpg)
+![image](./DSC_0501.jpg)
+![image](./PXL_20250221_134545151.jpg)

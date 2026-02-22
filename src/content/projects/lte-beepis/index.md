@@ -1,10 +1,10 @@
 ---
-title: "LTE Beepis"
-description: "Lte Beepis addon"
+title: "LTE blepis"
+description: "Lte blepis addon"
 date: "February 2026"
 repoURL: "https://github.com/HackModsOrg/lte-blepis"
 ---
 
-LTE modem addon for the [Beepis](https://bbkb-community.github.io/computers/beepis/) handheld computer, single sim-card slot and an antenna connector, pads speaker and microphone underneath the board. 
+LTE modem addon for the [blepis](https://bbkb-community.github.io/computers/blepis/) handheld computer, single sim-card slot and an antenna connector, pads speaker and microphone underneath the board. 
 
-![LTE-Beepis](./ltebeepis.png)
+![LTE-blepis](./ltebeepis.png)

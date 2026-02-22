@@ -1,0 +1,147 @@
+---
+title: Setting up a development environment in rust for the nRF52840
+date: 01/28/2026
+description: nRF52840 development in rust
+draft: false
+---
+import { Image } from 'astro:assets';
+import debugging from './debugging.jpg';
+import picodebugging from './pico-debugging.jpg';
+import { Code } from 'astro:components';
+
+Recently i had to write some test programs for my [nrf52840 board](https://ambraglow.org/projects/syldra) and as personal preference i began development in Rust, i'm writing 
+this blog post as a reference for anyone else who might be doing the same.
+
+## Debugging and programming
+The first thing you might want to do is choose a programmer, in my case i used the nrf9161-dk at first and later a pi pico flashed with [debugprobe firmware](https://github.com/raspberrypi/debugprobe/)[^1], but anything that supports Single-wire IO will work.
+
+<Image src={debugging} alt="First debugging setup using the nrf9160-dk"/>
+<p style="font-size: 12px; text-align: center; font-style: italic; margin-top: 0px;">using a nrf9161-dk for debugging the nrf52840 devboard (bottom right)</p>
+
+<Image src={picodebugging} alt="Second setup using a pi pico"/>
+<p style="font-size: 12px; text-align: center; font-style: italic; margin-top: 0px;">setup using a pi-pico for debugging and power</p>
+
+## Development environment setup
+
+Setting up a project quite straightforward, you might want to make sure your development environment is ready for cross-compilation, for this i crafted a shell using nix flakes: 
+```nix
+{
+  description = "Rust flake with nightly";
+
+  inputs = {
+    flake-utils.url = "github:numtide/flake-utils";
+    rust-overlay.url = "github:oxalica/rust-overlay";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
+    crane.url = "github:ipetkov/crane";
+  };
+
+  outputs = { self, flake-utils, rust-overlay, nixpkgs, crane }:
+    flake-utils.lib.eachDefaultSystem (system:
+      let
+        overlays = [ (import rust-overlay) ];
+        pkgs = (import nixpkgs) {
+          inherit system overlays;
+        };
+        
+        rustToolchain = pkgs.rust-bin.nightly."2025-06-30".default.override {
+          extensions = [ "rust-analyzer" "clippy" "rust-src" "llvm-tools"];
+          targets = [ "thumbv7em-none-eabihf" ];
+        };
+        craneLib = (crane.mkLib pkgs).overrideToolchain rustToolchain;
+        src = craneLib.cleanCargoSource ./.;
+        nativeBuildInputs = with pkgs; [ rustToolchain probe-rs-tools ];
+        buildInputs = with pkgs; [ ];
+        commonArgs = {
+          inherit src buildInputs nativeBuildInputs;
+        };
+        cargoArtifacts = craneLib.buildDepsOnly commonArgs;
+        bin = craneLib.buildPackage (commonArgs // {
+          inherit cargoArtifacts;
+        });
+      in
+      with pkgs;
+      {
+        packages =
+          {
+            inherit bin;
+            default = bin;
+          };
+        devShells.default = mkShell {
+          inputsFrom = [ bin ];
+          # buildInputs = [ flip-link ];
+        };
+      }
+    );
+}
+```
+This way we've setup a shell that can be called anytime we want to build the project which we can enter by running `nix develop`, inside the root directory of your project you'll want to run `cargo init .`.
+The next steps are easy, we just need to grab a few files from the embassy repository in the [nrf52 examples folder](https://github.com/embassy-rs/embassy/tree/main/examples/nrf52840), specifically we want `memory.x` which is our linker script, `build.rs` and 
+we'll also want to create a `.cargo` folder and place `config.toml` in it.
+
+Next we will want to add these lines at the top of our main file:
+```rust
+#![no_std]
+#![no_main]
+```
+and now we can move on to importing whatever dependencies our project needs.
+
+## The linker script
+
+If you're going to be using any of the radio features (like Bluetooth or zigbee) you want to make sure to change memory.x accordingly:
+```
+{
+    /* These values correspond to the NRF52840 with Softdevices S140 7.3.0 */
+    FLASH : ORIGIN = 0x00027000, LENGTH = 868K
+    RAM : ORIGIN = 0x20020000, LENGTH = 128K
+}
+```
+and to make sure you've flashed the [SoftDevice](https://www.nordicsemi.com/Products/Development-software/S140) before running your project.
+
+Also here's a small series of libraries available in rust for BLE and matter:
+- [TrouBLE](https://github.com/embassy-rs/trouble)
+- [RS-Matter-embassy](https://github.com/sysgrok/rs-matter-embassy)
+
+### Adafruit nrf52 bootloader
+
+If you're using the [Adafruit nrf52 bootloader](https://github.com/adafruit/Adafruit_nRF52_Bootloader), like in my case, you'll want to make sure your linker script looks something like this:
+```
+{
+    /* These values correspond to the nRF52840 WITH Adafruit nRF52 bootloader */
+    FLASH : ORIGIN = 0x00026000, LENGTH = 868K
+    RAM : ORIGIN = 0x20020000, LENGTH = 128K
+}
+```
+
+You'll also want to install `cargo make` and add a Makefile.toml file to your project:
+```toml
+[tasks.flip-link]
+install_crate = { crate_name = "flip-link", binary = "flip-link", test_arg = ["-h"] }
+
+[tasks.objcopy]
+install_crate = { crate_name = "cargo-binutils", binary = "cargo", test_arg = [
+    "objcopy",
+    "--help",
+] }
+command = "cargo"
+args = ["objcopy", "--release", "--", "-O", "ihex", "<your-project-name>.hex"]
+dependencies = [ "flip-link"]
+
+[tasks.uf2]
+install_crate = { crate_name = "cargo-hex-to-uf2", binary = "cargo", test_arg = [
+    "hex-to-uf2",
+    "--help",
+] }
+command = "cargo"
+args = [
+    "hex-to-uf2",
+    "--input-path",
+    "<your-project-name>.hex",
+    "--output-path",
+    "<your-project-name>.uf2",
+    "--family",
+    "nrf52840",
+]
+dependencies = ["objcopy"]
+```
+
+[^1]: make sure to choose the "on_pico" version if you're not using a [debugprobe](https://www.raspberrypi.com/documentation/microcontrollers/debug-probe.html) board.
