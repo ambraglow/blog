@@ -5,7 +5,8 @@ import sitemap from "@astrojs/sitemap";
 import tailwind from "@astrojs/tailwind";
 
 export default defineConfig({
-  site: "https://blog.ambraglow.org",
+  output: 'static',
+  site: "https://ambraglow.org",
   integrations: [expressiveCode(), mdx(), sitemap(), tailwind()],
   security: {
     allowedDomains: [
@@ -17,7 +18,8 @@ export default defineConfig({
   },
   vite: {
     server: {
-        allowedHosts: ['ambraglow.org']
+        allowedHosts: ['ambraglow.org'],
+        port: 3000
     },
   }
 });
