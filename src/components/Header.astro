@@ -2,27 +2,23 @@
 import Container from "@components/Container.astro";
 import Link from "@components/Link.astro";
 import { SITE } from "@consts";
-import { Image } from 'astro:assets';
+import { Image } from "astro:assets";
 ---
 
 <header>
   <Container>
     <div class="flex flex-wrap gap-y-2 justify-between">
       <Link href="/" underline={false}>
-        <div class="font-medium">
+        <div class="font-extrabold" style="text-shadow: #ffce65 0px -1px 2px;">
           {SITE.NAME}
         </div>
       </Link>
-      <nav class="flex gap-1">
-        <Link href="/blog">
-          blog
-        </Link>
+      <nav class="flex gap-2 animate-nav">
+        <Link href="/blog"> blog </Link>
         <span>
-          {`/`}
+          {``}
         </span>
-        <Link href="/projects">
-          projects
-        </Link>
+        <Link href="/projects"> projects </Link>
       </nav>
     </div>
   </Container>

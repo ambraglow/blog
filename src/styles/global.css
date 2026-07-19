@@ -2,8 +2,47 @@
 @tailwind components;
 @tailwind utilities;
 
+@font-face {
+  font-family: 'IoskeleyMono';
+  src: url('/fonts/IoskeleyMono-Thin.woff2') format('woff2');
+  font-weight: 100;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'IoskeleyMono';
+  src: url('/fonts/IoskeleyMono-Light.woff2') format('woff2');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'IoskeleyMono';
+  src: url('/fonts/IoskeleyMono-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'IoskeleyMono';
+  src: url('/fonts/IoskeleyMono-SemiBold.woff2') format('woff2');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'IoskeleyMono';
+  src: url('/fonts/IoskeleyMono-Bold.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
 html {
-  overflow-y: scroll;
   color-scheme: light;
 }
 
@@ -17,20 +56,29 @@ body {
 }
 
 body {
-  @apply font-sans antialiased;
+  @apply antialiased;
   @apply flex flex-col;
-  @apply bg-stone-100 dark:bg-stone-900;
-  @apply text-black/50 dark:text-white/75;
+  @apply bg-stone-100 dark:bg-zinc-900;
+  @apply bg-blend-saturation bg-opacity-10;
 }
 
 header {
-  @apply fixed top-0 left-0 right-0 z-50 py-5;
-  @apply bg-stone-100/75 dark:bg-stone-900/25;
-  @apply backdrop-blur-sm saturate-200 backdrop-saturate-0; 
+  @apply fixed top-0 left-0 right-0 z-50 py-10;
+  @apply backdrop-blur-sm;
+  @apply font-ioskeley font-bold;
+  color: #FD8603;
+
+  a {
+    @apply font-bold;
+  }
 }
 
 main {
-  @apply flex-1 py-32;
+  @apply flex-1 py-20;
+}
+
+main article {
+  text-shadow: none;
 }
 
 footer {
@@ -39,20 +87,69 @@ footer {
 
 article {
   @apply max-w-full prose dark:prose-invert prose-img:mx-auto prose-img:my-auto;
-  @apply prose-headings:font-semibold prose-p:font-serif;
-  @apply prose-headings:text-black prose-headings:dark:text-white;
+  @apply prose-headings:font-extrabold prose-p:font-mono prose-p:font-normal;
+}
+
+p {
+  @apply prose-p:font-mono;
+  @apply font-mono;
+  color: white;
+  font-size: 0.89rem;
+  word-spacing: 12%;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  @apply font-ioskeley font-medium;
+  color: #FD8603;
+}
+
+ul li {
+  @apply font-mono;
+  /* color: #ffcf6c; */
+  font-size: 0.88rem;
+}
+
+div.text-sm {
+  @apply font-mono font-light;
+  color: white;
+  font-size: 0.85rem;
+  word-spacing: 12%;
+}
+
+article {
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-ioskeley font-medium;
+    color: white;
+  }
 }
 
 @layer utilities {
   article a {
-    @apply font-sans text-current underline underline-offset-2;
+    @apply text-current underline underline-offset-2;
     @apply decoration-black/15 dark:decoration-white/30;
     @apply transition-colors duration-300 ease-in-out;
   }
+
   article a:hover {
     @apply text-black dark:text-white;
     @apply decoration-black/25 dark:decoration-white/50;
   }
+}
+
+.animate-nav:hover {
+  text-shadow: #ffbe00 0px 0px 10px;
+  @apply transition-all duration-100 ease-linear;
 }
 
 .animate {

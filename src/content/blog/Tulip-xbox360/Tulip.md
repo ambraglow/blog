@@ -8,7 +8,7 @@ draft: false
 ### A disclaimer:
 The first section of this post will provide some context about the xbox 360 and how the hacking scene evolved over the years, if you want to go straight to the point you can jump to "So, why Tulip?".
 
-# A bit(e) of Xbox 360 history 
+## A bit(e) of Xbox 360 history 
 The Xbox 360, released by Microsoft in 2005, veers off from its predecessor's design - the original XBOX, which is based on x86 and is similar to a desktop pc of the time - whereas the 360 completely switches architectures, choosing PowerPC instead, and utilizes embedded solutions for its power-path and IO handling. 
 Starting from the oldest 360 model, named "Xenon", the image shows the main components from right to left the CPU - nicknamed "XCPU", left of that sits the GPU - named "Xenos", right above is a dedicated ASIC for analog signals called the "[ANA](https://xenonlibrary.com/wiki/ANA)" and next to it is the southbridge which is our I/O controller, also integrating extra facilities such as the flash interface and the "SMC" System Management Controller.
 ![xbox 360 mainboard](./Pasted%20image%2020251225154419.png)

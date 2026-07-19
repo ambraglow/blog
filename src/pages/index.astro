@@ -6,95 +6,127 @@ import ArrowCard from "@components/ArrowCard.astro";
 import Link from "@components/Link.astro";
 import { dateRange } from "@lib/utils";
 import { SITE, HOME, SOCIALS } from "@consts";
+import { Image } from "astro:assets";
+import { getEntry } from "astro:content";
+
+import * as aboutme from "../content/aboutme.md";
+
+import cat from "../../public/buttons/cat.gif";
+import noaa from "../../public/buttons/noaa.gif";
+import estrogen from "../../public/buttons/hrt.gif";
+import transnow from "../../public/buttons/transnow.gif";
+import { render } from "astro:content";
 
 const blog = (await getCollection("blog"))
-  .filter(post => !post.data.draft)
+  .filter((post) => !post.data.draft)
   .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
-  .slice(0,SITE.NUM_POSTS_ON_HOMEPAGE);
+  .slice(0, SITE.NUM_POSTS_ON_HOMEPAGE);
 
 const projects = (await getCollection("projects"))
-  .filter(project => !project.data.draft)
+  .filter((project) => !project.data.draft)
   .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
-  .slice(0,SITE.NUM_PROJECTS_ON_HOMEPAGE);
-
+  .slice(0, SITE.NUM_PROJECTS_ON_HOMEPAGE);
 ---
 
 <PageLayout title={HOME.TITLE} description={HOME.DESCRIPTION}>
   <Container>
-    <h4 class="animate font-semibold text-black dark:text-white">
-      Hi, I'm ambra, welcome to my website <span class="text-xl">🐾</span> 
-    </h4>
-    <div class="space-y-16">
+    <div class="space-y-5" style="">
       <section>
-        <article class="space-y-4">
-          <p class="animate">
-            Welcome to my website where i post my projects, write about them and sometimes talk about unrelated things!
-            I like computers, radios, photography, astronomy, music, taking things apart and repairing them.
-          </p>
-        </article>
-      </section>
-
-      <section class="animate space-y-6">
-        <div class="flex flex-wrap gap-y-2 items-center justify-between">
-          <h5 class="font-semibold text-black dark:text-white">
-            Latest posts
-          </h5>
-          <Link href="/blog">
-            See all posts
-          </Link>
-        </div>
-        <ul class="flex flex-col gap-4">
-          {blog.map(post => (
-            <li>
-              <ArrowCard entry={post} />
-            </li>
-          ))}
-        </ul>
-      </section>
-
-      <section class="animate space-y-6">
-        <div class="flex flex-wrap gap-y-2 items-center justify-between">
-          <h5 class="font-semibold text-black dark:text-white">
-            Recent projects
-          </h5>
-          <Link href="/projects">
-            See all projects
-          </Link>
-        </div>
-        <ul class="flex flex-col gap-4">
-          {projects.map(project => (
-            <li>
-              <ArrowCard entry={project} />
-            </li>
-          ))}
-        </ul>
-      </section>
-
-      <section class="animate space-y-4">
-        <h5 class="font-semibold text-black dark:text-white">
-          Let's Connect
-        </h5>
         <article>
-          <p>
-            If you want to get in touch with me about something or just to say hi,
-            reach out on social media or send me an email.
+          <p class="">
+            Heyo, i'm Ambra, thank you for visiting my website! <br />
+            i like everything practical, therefore i consider myself an engineer of
+            sorts. my projects can range from coding DSP blocks (in Rust btw) to taking
+            old things apart, learning how they work and repairing them. i have built
+            a <a href="welcometothefamily.jpg">small radio collection</a> because
+            of this habit.
+            <br />
+            <br />
+            in the past few years i've collaborated on multiple projects, many of
+            which were played crucial role in honing my skills as a hardware PCB designer:
+            it started as part of
+            <a href="https://github.com/HackModsOrg">HackMods</a> around two years
+            ago, one of my first boards was a simple microcontroller and the main
+            goal was to pack it all into a really small form factor. Things moved
+            quickly, more recently i've worked on an xbox360 flasher board and a radio
+            controlled thermostat featuring sensors and an e-ink display interface.
+            <br />
+            <br />
+
+            In my free time i like taking pictures of pretty things and
+            experimenting. i have three digital camera bodies, as well as two
+            film ones. i've modified two of the digital cameras: my main body, a
+            Nikon D800, was adapted for full spectrum imaging. Most of the time
+            i operate on the infrared spectrum as <a
+              href="http://www.naturfotograf.com/UV_IR_rev00.html"
+              >ultraviolet photography</a
+            > is too expensive for me, i still use a UV-IR cut filter to take normal
+            pictures when needed. <br />
+            The second modified camera is a Nikon D5000 that i've pieced back together
+            from two broken bodies. I used two bodies to build a working single body,
+            which only operates in manual mode, and i've done a bit of messing with
+            the sensor lines to produce "circuit-bent" images. lastly, i have a Nikon
+            D7000, which i mainly use for birdwatching and hiking in nature occasions
+            as it's a very capable and light camera. <br />
+            <br />
+            You can check out my digital gallery <a
+              href="https://www.flickr.com/photos/190109522@N05/">here.</a
+            >
           </p>
         </article>
-        <ul class="flex flex-wrap gap-2">
-          {SOCIALS.map(SOCIAL => (
-            <li class="flex gap-x-2 text-nowrap">
-              <Link href={SOCIAL.HREF} external aria-label={`${SITE.NAME} on ${SOCIAL.NAME}`}>
-                {SOCIAL.NAME}
-              </Link>
-              {"/"}
-            </li>
-          ))}
+      </section>
+
+      <section class="space-y-6">
+        <div class="flex flex-wrap gap-y-2 items-center justify-between">
+          <h5 class="underline">Latest posts</h5>
+          <Link href="/blog"> See all posts </Link>
+        </div>
+        <ul class="flex flex-col gap-4">
+          {
+            blog.map((post) => (
+              <li>
+                <ArrowCard entry={post} />
+              </li>
+            ))
+          }
+        </ul>
+      </section>
+
+      <section class="flex flex-col gap-2">
+        <h4 class="font-mono underline">Socials</h4>
+        <ul class="flex flex-wrap gap-x-2">
+          {
+            SOCIALS.map((SOCIAL) => (
+              <li class="flex gap-x-3 text-nowrap">
+                <Link
+                  href={SOCIAL.HREF}
+                  external
+                  aria-label={`${SITE.NAME} on ${SOCIAL.NAME}`}
+                >
+                  {SOCIAL.NAME}
+                </Link>
+                {"-"}
+              </li>
+            ))
+          }
           <li class="line-clamp-1">
-            <Link href={`mailto:${SITE.EMAIL}`} aria-label={`Email ${SITE.NAME}`}>
+            <Link
+              href={`mailto:${SITE.EMAIL}`}
+              aria-label={`Email ${SITE.NAME}`}
+            >
               {SITE.EMAIL}
             </Link>
           </li>
         </ul>
+      </section>
+
+      <section>
+        <div class="flex flex-1 flex-row flex-wrap">
+          <img src={cat.src} alt="" />
+          <img src={noaa.src} alt="" />
+          <img src={estrogen.src} alt="" />
+          <img src={transnow.src} alt="" />
+        </div>
       </section>
     </div>
   </Container>

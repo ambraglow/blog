@@ -3,8 +3,6 @@ title: Modifying the Thinkpad 13 Gen 1 to unlock its full PCIe potential
 date: 07/08/2024
 description: How i modified a Thinkpad 13 Gen 1 to work with PCIe NVMe SSDs
 ---
-
-# Modifying the Thinkpad 13 Gen 1 to unlock its full PCIe potential
 A Few weeks ago i acquired a Thinkpad 13 Gen 1 on ebay, sold by a recycling company, it was listed for parts
 and with the wrong model name in the title.  
 Math done it only cost about 33 euro shipped so i decided to buy it,  
