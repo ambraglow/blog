@@ -2,7 +2,7 @@
 title: A look into the Nothing X smartwatch app
 date: 07/30/2026
 description: One of my first serious reversing attempts
-draft: true
+draft: false
 ---
 
 
@@ -42,15 +42,15 @@ The process looked a bit like this:
 
 I had a good look around all of the classes i could find that looked interesting, i ended up settling on `com.nothing.log.Logger` which was the right choice, as it prints out information through android's log accessible via  `adb logcat` with USB debugging enabled. 
 
-![image]("./Pasted image 20260730154905.png")
+![image](./Pastedimage20260730154905.png)
 
 Hooking onto `isCanLogger` and returning true for every call is what enabled me to view a basic level of prints in the console.
  "
-![image]("./Pasted image 20260730155536.png")
+![image](./Pastedimage20260730155536.png)
 
 It's called in many functions when printing is mentioned, to report method arguments and return values and this was perfect in my case! The OTA update URL was right in the logs, along with other interesting downloads.
 
-![image]("./Pasted image 20260730160126.png")
+![image](./Pastedimage20260730160126.png)
 
 Before my success, i hooked a few different methods: 
 The first, named `NetWorkConstant`, its structure caught my eye:
