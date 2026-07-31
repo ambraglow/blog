@@ -5,6 +5,14 @@ description: One of my first serious reversing attempts
 draft: false
 ---
 
+import { Image } from 'astro:assets';
+import classdirs from './classdirs.png';
+import loggermethods from './loggermethods.png';
+import loggeruse from './loggeruse.png';
+import classdirs2 from './classdirs2.png';
+
+import { Code } from 'astro:components';
+
 
 Some time ago i decided to buy a smartwatch, mainly because i want to keep track of my health, plus it makes for a nice accessory. While window-shopping on the interwebs, i found an auction on Aukro - basically the Czech Republic's analogue of eBay - for a CMF watch 3 pro, the technical specs looked good enough. Besides the aesthetics, which really caught my eye and were just one more reason to bid on it.
 
@@ -24,7 +32,8 @@ Previously, Samsung's firmware used a non-encrypted connection (just HTTP) to do
 Nothing rightfully decided using HTTP is stupid, so this didn't work. The file goes through HTTPS, so no shot decrypting that.
 As a second attempt, i tried running PCAPDroid's MITM[^2] server, in the backend this runs the [mitmproxy](https://github.com/mitmproxy/mitmproxy) service and you're required to install their CA certificate for it to work. 
 
->little side note and for future reference, there's something i just noticed in the app's readme: "For rooted devices, the [pcapd daemon](https://github.com/emanuele-f/PCAPdroid/tree/master/app/src/main/jni/pcapd) can be directly integrated into your APK to capture network packets."
+<p style="font-size: 12px; text-align: left; font-style: italic; margin-top: 0px;">**little side note:** for future reference, there's something i just noticed in the app's readme: "For rooted devices, the [pcapd daemon](https://github.com/emanuele-f/PCAPdroid/tree/master/app/src/main/jni/pcapd) can be directly integrated into your APK to capture network packets."</p>
+
 
 This also didn't work, Nothing's app probably detected either the certificate or the proxy was running and just reported a network error when refreshing the firmware updates page.
 All that was left was looking into the app.
@@ -40,17 +49,21 @@ The process looked a bit like this:
 2. Write/Modify the script to hook and print a simple "program passed through here" message.
 3. repeat.
 
+
+<div style="display: flex; flex-direction: row; gap: 1rem;" >
+    <Image src={classdirs} alt="" style="width: 30%; margin: 1rem; position: relative;"/>
+    <Image src={classdirs2} alt="" style="width: 30%; margin: 1rem; position: relative;"/>
+</div>
+
 I had a good look around all of the classes i could find that looked interesting, i ended up settling on `com.nothing.log.Logger` which was the right choice, as it prints out information through android's log accessible via  `adb logcat` with USB debugging enabled. 
 
-![image](./Pastedimage20260730154905.png)
-
 Hooking onto `isCanLogger` and returning true for every call is what enabled me to view a basic level of prints in the console.
- "
-![image](./Pastedimage20260730155536.png)
+
+<Image src={loggermethods} alt=""/>
+<br></br>
+<Image src={loggeruse} alt=""/>
 
 It's called in many functions when printing is mentioned, to report method arguments and return values and this was perfect in my case! The OTA update URL was right in the logs, along with other interesting downloads.
-
-![image](./Pastedimage20260730160126.png)
 
 Before my success, i hooked a few different methods: 
 The first, named `NetWorkConstant`, its structure caught my eye:
