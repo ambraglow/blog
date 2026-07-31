@@ -117,8 +117,8 @@ ul li {
 div.text-sm {
   @apply font-mono font-light;
   color: white;
-  font-size: 0.85rem;
-  word-spacing: 12%;
+  font-size: 0.8rem;
+  word-spacing: 4%;
 }
 
 article {
