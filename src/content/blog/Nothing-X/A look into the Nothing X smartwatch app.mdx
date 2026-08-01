@@ -10,7 +10,7 @@ import classdirs from './classdirs.png';
 import loggermethods from './loggermethods.png';
 import loggeruse from './loggeruse.png';
 import classdirs2 from './classdirs2.png';
-import logclass from './logclass.png';
+import logclass from './logclasses.png';
 
 import { Code } from 'astro:components';
 
@@ -46,24 +46,32 @@ For my second attempt, i tried running PCAPDroid's MITM[^2] server, in the backe
 
 >little side note and for future reference: "For rooted devices, the [pcapd daemon](https://github.com/emanuele-f/PCAPdroid/tree/master/app/src/main/jni/pcapd) can be directly integrated into your APK to capture network packets."
 
-This simply didn't work, Nothing's app probably detected either the certificate or the proxy was running and just reported a network error when refreshing the firmware updates page.
+This just didn't work, Nothing's app probably detected either the certificate or the proxy was running and reported a network error when refreshing the firmware update page.
 All that was left was looking into the app.
 
 #### Disassembling in JADX
 My next tool of choice was [JADX](https://github.com/skylot/jadx), although i'll admit i was quite lost here, i haven't done any significant amounts of software reverse engineering to know my way around classes, structs and code, i'd rank the experience above looking at MacOS applications in IDA though.
-My first instinct was to look for strings or classes that mention: "OTA", "firmware", "update", stuff like that. Searching the second option produced a few interesting results, i found out Nothing names their watches and earbuds differently under the hood, just like the majority of smartphone devices. Now, i'll admit i may have ADHD which led me to laser focus on these names for a good part of the search and i kinda burned through my motivation initially.
+My first instinct was to look for strings or classes that mention: "OTA", "firmware", "update", stuff like that. Searching for the second option produced a few interesting results, i found out Nothing names their watches and earbuds differently under the hood, just like the majority of smartphone devices. Now, i'll admit i may have ADHD which led me to laser focus on these names for a good part of the search and i kinda burned through my motivation initially.
 
 When [Kate](https://localcc.cc/) pointed out what i was doing was stupid, and gave me some directions, i was able to get back on track. This is when i decided i was going to try a more practical approach and hook methods in the app with [Frida](https://frida.re/), a pretty nifty tool for reverse engineering, which supports scripting.
-Using Frida is pretty easy, all i had to do was install the server service on my phone following [the guide on their website](https://frida.re/docs/android/), i unfortunately fell into the javascript scripting hellhole soon after, i despise every second i had to write js. I used LLMs to aid me in writing a few drafts, then picked bits and pieces here and there that became my final script, a lot of the reversing involved going through network request methods and hooking, hoping something will print when running the app.
+Using Frida is pretty easy, all i had to do was install the server service on my phone following [the guide on their website](https://frida.re/docs/android/).
+I unfortunately fell into the javascript scripting hellhole soon after, i despise every second i had to write js. 
+I used LLMs to aid me in writing a few drafts, then picked bits and pieces here and there that became my final script.
+A lot of the reversing involved going through network request methods, hooking and hoping something will print when running the app.
 
 The process looked a bit like this:
 1. find a `function` or `class` that looks promising.
-2. Write/Modify the script to hook and print a simple "program passed through here" message.
+2. Write/Modify the script to hook it and print a simple "program passed through here" message.
 3. repeat.
 
-I had a good look around all of the classes i could find that looked interesting, i ended up settling on `com.nothing.log.Logger` as it's responsible for logging across the whole app.
+I had a good look around all of the classes that i could find and looked interesting.
+I ended up settling on `com.nothing.log.Logger` as it's responsible for logging across the whole app.
 
-<Image src={logclass} alt="" style="width: 30%; margin: 1rem; position: relative;"/>
+<Image src={logclass} alt="" style="width: 50%; margin: 1rem; position: relative;"/>
+
+This class has a few interesting methods:
+
+<Image src={loggermethods} alt="" style="width: 50%; margin: 1rem; position: relative;"/>
 
 Hooking onto `isCanLogger` and returning true for every call is what enabled me to view a basic level of prints in log files, this is disabled for the app's release version.
 I also figured out how to enable printing to android system log by looking at how the method is called, hooking `isDebug` and performing the same trick is what did it.
@@ -90,8 +98,8 @@ if (logger.isCanLogger(true)) {
 The reports include arguments and return values - this was perfect in my case! The OTA update URL was right in the logs, along with other interesting links.
 
 #### Previous attempts
-Before my success, i hooked a few different methods: 
-The first, named `NetWorkConstant`, its structure caught my eye:
+Before my success, i looked around a bit more: 
+i found a class named `NetWorkConstant` and its structure caught my eye:
 ```kotlin
 public final class NetWorkConstant {  
     public static final String DEBUG = "DEBUG";  
@@ -114,7 +122,8 @@ public final class NetWorkConstant {
 	...
 ```
 
-Kate suggested it too, but i didn't have much success, nothing useful returned in the console - the neighbouring class `NetworkLoadRepo` has some interesting stuff too, it mentions the earlier class and calls the `getURL_MAP()` method from it, from what i understand this static block is code running before the owning class is initialized - i tried hooking it on startup but the app would always crash.
+Kate suggested i hook one of its methods, to see if i could dump its contents but nothing useful returned in the console.
+The neighbouring class `NetworkLoadRepo` has some interesting stuff too, it mentions the earlier class and calls the `getURL_MAP()` method from it, from what i understand this static block is code running before the owning class is initialized - i tried hooking it on startup but the app would always crash.
 
 ```kotlin
 static {  
@@ -165,9 +174,8 @@ and voilà, after a quick search in the logs i found the ota update url:
 data:{"success":true,"code":200,"timestamp":1785068168836,"msg":"成功","msgCode":null,"data":{"version":"1.0.1.77","otaUrl":"https://d1zc89dd4u2mk2.cloudfront.net/ota/1779242462258JX402_08_ATS3089C_V1.0.1.77_GPS_V6_20260418.bin","needUpdate":1,"description":"Enhanced overall user experience","fileSize":45069312,"sha256":"cf381188eb5fe26a14047a03697e68b58785bdcd01c4baf8703d4624650c6352","releaseNote":null,"forcedUpgrade":false,"mediaVersion":false}}
 ```
 
-In the next blog post i'll talk about reversing the binary, so be on the look out for that! 
-<br></br>
-	^^ written Thursday 30th July 2026, let's see how long this takes me.
+In the next blog post i'll talk about reversing the binary, so be on the look out for that!  
+<p style="font-size: 12px; text-align: left; font-style: italic; margin-top: 0px; padding-top: 0px;">^^ written Thursday 30th July 2026, let's see how long this takes me.</p>
 
 [^1]: https://www.52audio.com/archives/265085.html 
 [^2]: Man-In-The-Middle
