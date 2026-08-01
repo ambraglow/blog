@@ -2,7 +2,7 @@
 title: A look into the Nothing X smartwatch app
 date: 07/30/2026
 description: One of my first serious reversing attempts
-draft: true
+draft: false
 ---
 
 import { Image } from 'astro:assets';
@@ -10,6 +10,7 @@ import classdirs from './classdirs.png';
 import loggermethods from './loggermethods.png';
 import loggeruse from './loggeruse.png';
 import classdirs2 from './classdirs2.png';
+import logclass from './logclass.png';
 
 import { Code } from 'astro:components';
 
@@ -17,54 +18,73 @@ import { Code } from 'astro:components';
 Some time ago i decided to buy a smartwatch, mainly because i want to keep track of my health, plus it makes for a nice accessory. While window-shopping on the interwebs, i found an auction on Aukro - basically the Czech Republic's analogue of eBay - for a CMF watch 3 pro, the technical specs looked good enough. Besides the aesthetics, which really caught my eye and were just one more reason to bid on it.
 
 A few things that caught my eye:
-- i found out quite early from the Chinese slice of the internet the main SoC is an [Action-Tech/Semi ATS3089C]()[^1].
+- i found out quite early from the Chinese slice of the internet that the main processor is an [Action-Tech/Semi ATS3089C]()[^1].
 - the watch has built-in dual-band GPS which is quite neat.
 - Nothing advertises 13 hours of battery life.
 
 I ended up winning the auction so, yay - the watch is mine!
-#### A curious cat, is a happy cat
+
+#### A curious cat - is a happy cat
 I am a simple woman: i own new hardware, i need to **touch it** or i'll explode.
-Put into more sane terms, i always want to try and hack and take apart (if possible) gadgets when i get my hands on them. 
-Just a few days after my purchase the perfect occasion popped up! Nothing released a firmware update: Version 1.0.77. The changelog is very informative and detailed, describing the changes as "Enhanced overall user experience" - ngl, probably written by an LLM held at taserpoint, considering the preceding text that reads: "A new update is here with enhancements and fixes. Here's what's new in this update:".
+Put into more sane terms, i always want to try and hack and take apart (if possible) gadgets when i get my hands on them.
+And just a few days after my purchase the perfect occasion for a firmware dump popped up! Nothing released a software update: Version 1.0.77. 
+I must say the changelog is very informative and detailed, describing the changes as "Enhanced overall user experience" and... that's it? Seriously? what? why? would it really hurt them to be a bit more detailed?
+<p style="font-size: 12px; text-align: left; font-style: italic; margin-top: 0px;">ngl, this was probably written by an LLM held at gunpoint, considering the preceding text that reads: "A new update is here with enhancements and fixes. Here's what's new in this update:".</p>
+Anyway, this means i finally have an occasion to tinker with my watch, by grabbing the firmware update i could definitely find out more about it. So i start figuring out a plan and decide to postpone updating its firmware for a while.
+
 #### Packet capture in progress...
-[Moving on](https://www.youtube.com/watch?v=qeMFqkcPYcg), i tried what worked for me in the past in a similar situation - different smartwatch, a Samsung Fit 3 - using [PCAPDroid](https://github.com/emanuele-f/pcapdroid) to download some traffic and analyze it in Wireshark later.
-Previously, Samsung's firmware used a non-encrypted connection (just HTTP) to download which allowed me to simply recover the image from the capture.
-Nothing rightfully decided using HTTP is stupid, so this didn't work. The file goes through HTTPS, so no shot decrypting that.
-As a second attempt, i tried running PCAPDroid's MITM[^2] server, in the backend this runs the [mitmproxy](https://github.com/mitmproxy/mitmproxy) service and you're required to install their CA certificate for it to work. 
+[Moving on](https://www.youtube.com/watch?v=qeMFqkcPYcg), i tried what worked for me in the past in a similar situation - For a different smartwatch, at the time i was hacking on a Samsung Fit 3 - the method i used was to run [PCAPDroid](https://github.com/emanuele-f/pcapdroid) on my phone to capture traffic and analyze it later.
+Previously, Samsung sent their firmware update through a non-encrypted connection (just HTTP) which allowed me to simply recover the image from the capture.
+But in this case Nothing rightfully decided using HTTP is stupid, so this didn't work as the file goes through HTTPS and there's no way i'm decrypting that.
 
-<p style="font-size: 12px; text-align: left; font-style: italic; margin-top: 0px;">**little side note:** for future reference, there's something i just noticed in the app's readme: "For rooted devices, the [pcapd daemon](https://github.com/emanuele-f/PCAPdroid/tree/master/app/src/main/jni/pcapd) can be directly integrated into your APK to capture network packets."</p>
+For my second attempt, i tried running PCAPDroid's MITM[^2] server, in the backend this runs the [mitmproxy](https://github.com/mitmproxy/mitmproxy) service and you're required to install their CA certificate for it to function. 
 
+>little side note and for future reference: "For rooted devices, the [pcapd daemon](https://github.com/emanuele-f/PCAPdroid/tree/master/app/src/main/jni/pcapd) can be directly integrated into your APK to capture network packets."
 
-This also didn't work, Nothing's app probably detected either the certificate or the proxy was running and just reported a network error when refreshing the firmware updates page.
+This simply didn't work, Nothing's app probably detected either the certificate or the proxy was running and just reported a network error when refreshing the firmware updates page.
 All that was left was looking into the app.
+
 #### Disassembling in JADX
 My next tool of choice was [JADX](https://github.com/skylot/jadx), although i'll admit i was quite lost here, i haven't done any significant amounts of software reverse engineering to know my way around classes, structs and code, i'd rank the experience above looking at MacOS applications in IDA though.
-My first instinct was to look for strings or classes that mention: "OTA", "firmware", "update", stuff like that. Searching the second option produced a few results that seemed like a good lead, i found out Nothing names their watches and earbuds under the hood just like the majority of smartphone devices. Now, i'll admit i may have ADHD which led me to laser focus on these names for a good part of the search and i kinda burned through my motivation initially.
+My first instinct was to look for strings or classes that mention: "OTA", "firmware", "update", stuff like that. Searching the second option produced a few interesting results, i found out Nothing names their watches and earbuds differently under the hood, just like the majority of smartphone devices. Now, i'll admit i may have ADHD which led me to laser focus on these names for a good part of the search and i kinda burned through my motivation initially.
 
-When [Local](https://localcc.cc/) pointed out what i was doing was stupid, and gave me some directions, i was able to get back on track. This is when i decided i was going to try a more practical approach and hook methods in the app with [Frida](https://frida.re/), a pretty nifty tool for reverse engineering, which supports scripting.
-Using Frida is pretty easy, all i had to do was install the server service on my phone following [the guide on their website](https://frida.re/docs/android/), i unfortunately fell into the javascript scripting hellhole soon after, i despise every second i had to write js. I used LLMs to aid me in writing a few drafts, then picked bits and pieces here and there that became my final script, a lot of the reversing involved going through network request methods and hooking hoping something will print when running the app.
+When [Kate](https://localcc.cc/) pointed out what i was doing was stupid, and gave me some directions, i was able to get back on track. This is when i decided i was going to try a more practical approach and hook methods in the app with [Frida](https://frida.re/), a pretty nifty tool for reverse engineering, which supports scripting.
+Using Frida is pretty easy, all i had to do was install the server service on my phone following [the guide on their website](https://frida.re/docs/android/), i unfortunately fell into the javascript scripting hellhole soon after, i despise every second i had to write js. I used LLMs to aid me in writing a few drafts, then picked bits and pieces here and there that became my final script, a lot of the reversing involved going through network request methods and hooking, hoping something will print when running the app.
 
 The process looked a bit like this:
 1. find a `function` or `class` that looks promising.
 2. Write/Modify the script to hook and print a simple "program passed through here" message.
 3. repeat.
 
+I had a good look around all of the classes i could find that looked interesting, i ended up settling on `com.nothing.log.Logger` as it's responsible for logging across the whole app.
 
-<div style="display: flex; flex-direction: row; gap: 1rem;" >
-    <Image src={classdirs} alt="" style="width: 30%; margin: 1rem; position: relative;"/>
-    <Image src={classdirs2} alt="" style="width: 30%; margin: 1rem; position: relative;"/>
-</div>
+<Image src={logclass} alt="" style="width: 30%; margin: 1rem; position: relative;"/>
 
-I had a good look around all of the classes i could find that looked interesting, i ended up settling on `com.nothing.log.Logger` which was the right choice, as it prints out information through android's log accessible via  `adb logcat` with USB debugging enabled. 
+Hooking onto `isCanLogger` and returning true for every call is what enabled me to view a basic level of prints in log files, this is disabled for the app's release version.
+I also figured out how to enable printing to android system log by looking at how the method is called, hooking `isDebug` and performing the same trick is what did it.
 
-Hooking onto `isCanLogger` and returning true for every call is what enabled me to view a basic level of prints in the console.
+```kotlin
+if (logger.isCanLogger(true)) {  
+	String str = " " + tab.get() + StringUtils.SPACE + level.get();  
+	String str2 = str;  
+	if (str2 != null && str2.length() != 0) {  
+		Pair<String, String> trace = logger.getTrace(depth);  
+		String strComponent1 = trace.component1();  
+		String strComponent2 = trace.component2();  
+		FileLog fileLog = FileLog.INSTANCE;  
+		String str3 = logger.getSdf().format(new Date());  
+		Intrinsics.checkNotNullExpressionValue(str3, "format(...)");  
+		FileLog.print$default(fileLog, 4, str3, tag, str + StringUtils.SPACE + strComponent2, null, 16, null);  
+		if (logger.isDebug()) {  
+			Log.i(tag + strComponent1, str + StringUtils.SPACE + strComponent2);  
+		}  
+	}  
+}
+```
 
-<Image src={loggermethods} alt=""/>
-<br></br>
-<Image src={loggeruse} alt=""/>
+The reports include arguments and return values - this was perfect in my case! The OTA update URL was right in the logs, along with other interesting links.
 
-It's called in many functions when printing is mentioned, to report method arguments and return values and this was perfect in my case! The OTA update URL was right in the logs, along with other interesting downloads.
-
+#### Previous attempts
 Before my success, i hooked a few different methods: 
 The first, named `NetWorkConstant`, its structure caught my eye:
 ```kotlin
@@ -89,7 +109,7 @@ public final class NetWorkConstant {
 	...
 ```
 
-Local suggested it too, but i didn't have much success, nothing useful returned in the console - the neighbouring class `NetworkLoadRepo` has some interesting stuff too, it mentions the earlier class and calls the `getURL_MAP()` method from it, from what i understand this static block is code running before the owning class is initialized - i tried hooking it on startup but the app would always crash.
+Kate suggested it too, but i didn't have much success, nothing useful returned in the console - the neighbouring class `NetworkLoadRepo` has some interesting stuff too, it mentions the earlier class and calls the `getURL_MAP()` method from it, from what i understand this static block is code running before the owning class is initialized - i tried hooking it on startup but the app would always crash.
 
 ```kotlin
 static {  
@@ -136,11 +156,12 @@ setImmediate(isLogger);
 setImmediate(dumpNetworkLoadRepoFields);
 ```
 and voilà, after a quick search in the logs i found the ota update url:
-```
+```json
 data:{"success":true,"code":200,"timestamp":1785068168836,"msg":"成功","msgCode":null,"data":{"version":"1.0.1.77","otaUrl":"https://d1zc89dd4u2mk2.cloudfront.net/ota/1779242462258JX402_08_ATS3089C_V1.0.1.77_GPS_V6_20260418.bin","needUpdate":1,"description":"Enhanced overall user experience","fileSize":45069312,"sha256":"cf381188eb5fe26a14047a03697e68b58785bdcd01c4baf8703d4624650c6352","releaseNote":null,"forcedUpgrade":false,"mediaVersion":false}}
 ```
 
 In the next blog post i'll talk about reversing the binary, so be on the look out for that! 
+<br></br>
 	^^ written Thursday 30th July 2026, let's see how long this takes me.
 
 [^1]: https://www.52audio.com/archives/265085.html 
