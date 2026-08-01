@@ -15,12 +15,16 @@ import logclass from './logclass.png';
 import { Code } from 'astro:components';
 
 
-Some time ago i decided to buy a smartwatch, mainly because i want to keep track of my health, plus it makes for a nice accessory. While window-shopping on the interwebs, i found an auction on Aukro - basically the Czech Republic's analogue of eBay - for a CMF watch 3 pro, the technical specs looked good enough. Besides the aesthetics, which really caught my eye and were just one more reason to bid on it.
+Some time ago i decided to buy a smartwatch, mainly because i want to keep track of my health, plus it makes for a nice accessory. While window-shopping on the interwebs, i found an auction on Aukro - basically the Czech Republic's analogue of eBay - for a CMF watch 3 pro, the technical specs looked good enough.
+^^
+change the Besides, idk if starting besides 
 
 A few things that caught my eye:
 - i found out quite early from the Chinese slice of the internet that the main processor is an Action-Tech/Semi ATS3089C[^1].
 - the watch has built-in dual-band GPS which is quite neat.
 - Nothing advertises 13 hours of battery life.
+
+Besides, i really like the aesthetics which was just one more reason to bid on it.
 
 I ended up winning the auction so, yay - the watch is mine!
 
@@ -33,8 +37,9 @@ I must say the changelog is very informative and detailed, describing the change
 Anyway, this means i finally have an occasion to tinker with my watch, by grabbing the firmware update i could definitely find out more about it. So i started figuring out a plan and decided to postpone updating its firmware for a while.
 
 #### Packet capture in progress...
-[Moving on](https://www.youtube.com/watch?v=qeMFqkcPYcg), i tried what worked for me in the past in a similar situation - For a different smartwatch, at the time i was hacking on a Samsung Fit 3 - the method i used was to run [PCAPDroid](https://github.com/emanuele-f/pcapdroid) on my phone to capture traffic and analyze it later.
-Previously, Samsung sent their firmware update through a non-encrypted connection (just HTTP) which allowed me to simply recover the image from the capture.
+I tried what worked for me in the past in a similar situation for a different smartwatch.
+At the time i was hacking on a Samsung Fit 3, the method i used was to run [PCAPDroid](https://github.com/emanuele-f/pcapdroid) on my phone to capture traffic and analyze it later.
+Samsung sent their firmware update through a non-encrypted connection (just HTTP) which allowed me to simply recover the image from the capture.
 But in this case Nothing rightfully decided using HTTP is stupid, so this didn't work as the file goes through HTTPS and there's no way i'm decrypting that.
 
 For my second attempt, i tried running PCAPDroid's MITM[^2] server, in the backend this runs the [mitmproxy](https://github.com/mitmproxy/mitmproxy) service and you're required to install their CA certificate for it to function. 
