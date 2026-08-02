@@ -22,6 +22,11 @@ export const PROJECTS: Metadata = {
   DESCRIPTION: "A collection of my projects, with links to repositories and demos.",
 };
 
+export const PHOTOGALLERY: Metadata = {
+  TITLE: "Gallery",
+  DESCRIPTION: "Work-in-progress area! An interactive collection of my photos over the years."
+}
+
 export const SOCIALS: Socials = [
   {
     NAME: "Discord: Ambraglow",

@@ -1,0 +1,184 @@
+---
+import { Image } from "astro:assets";
+import type { ImageMetadata } from "astro";
+import PageLayout from "@/layouts/PageLayout.astro";
+import Container from "@/components/Container.astro";
+import "glightbox/dist/css/glightbox.min.css";
+import { PHOTOGALLERY } from "@consts";
+
+// 1. Import every image inside every album-* folder
+const imageModules = import.meta.glob<{ default: ImageMetadata }>(
+    "/src/images/album-*/*.{png,jpg,jpeg,webp,avif}",
+    { eager: true },
+);
+
+// 2. Parse album folder names: album-<album number>-<month>-<day>-<year>
+const parsedImages = Object.entries(imageModules)
+    .map(([path, module]) => {
+        const parts = path.split("/");
+        const folder = parts[parts.length - 2]; // e.g. "album-1-8-2-2026"
+
+        const match = folder.match(/^album-(.+?)-(\d+)-(\d+)-(\d+)-(\d+)$/);
+        if (!match) return null;
+
+        const [, albumNameRaw, albumNumber, month, day, year] = match;
+        const albumName = albumNameRaw
+            .replace(/-/g, " ")
+            .replace(/\b\w/g, (c) => c.toUpperCase());
+
+        return {
+            path,
+            folder,
+            src: module.default,
+            albumName,
+            albumNumber,
+            month,
+            day,
+            year,
+            date: new Date(Number(year), Number(month) - 1, Number(day)),
+        };
+    })
+    .filter(Boolean);
+
+// 3. Group images by album folder
+const albumsMap = new Map();
+
+parsedImages.forEach((img) => {
+    if (!albumsMap.has(img!.folder)) {
+        albumsMap.set(img!.folder, {
+            folder: img!.folder,
+            albumName: img!.albumName,
+            albumNumber: img!.albumNumber,
+            month: img!.month,
+            day: img!.day,
+            year: img!.year,
+            date: img!.date,
+            images: [],
+        });
+    }
+    albumsMap.get(img!.folder)!.images.push(img!);
+});
+
+// 4. Sort albums by year, month, day, then album number
+const sortedAlbums = Array.from(albumsMap.values()).sort((a, b) => {
+    if (a.year !== b.year) return a.year - b.year;
+    if (a.month !== b.month) return a.month - b.month;
+    if (a.day !== b.day) return a.day - b.day;
+    return a.albumNumber - b.albumNumber;
+});
+
+// 5. Sort images inside each album alphabetically by filename
+sortedAlbums.forEach((album) => {
+    album.images.sort((a, b) => a.path.localeCompare(b.path));
+});
+
+// Helper to format the album header
+const formatAlbumTitle = (album: (typeof sortedAlbums)[number]) => {
+    const dateStr = album.date.toLocaleDateString("en-US", {
+        month: "long",
+        day: "numeric",
+        year: "numeric",
+    });
+    return `${album.albumName} — ${dateStr}`;
+};
+---
+
+<script>
+    import GLightbox from "glightbox";
+
+    let lightboxInstance: ReturnType<typeof GLightbox> | null = null;
+
+    function destroyGallery() {
+        if (lightboxInstance) {
+            lightboxInstance.destroy();
+            lightboxInstance = null;
+        }
+        // Also remove any leftover GLightbox DOM containers
+        document.querySelector(".glightbox-container")?.remove();
+    }
+
+    function initGallery() {
+        destroyGallery();
+
+        lightboxInstance = GLightbox({
+            selector: ".glightbox",
+            touchNavigation: true,
+            loop: true,
+            openEffect: "zoom",
+            closeEffect: "zoom",
+            slideEffect: "fade",
+        });
+    }
+
+    // 1. Run immediately if DOM is already ready
+    if (document.readyState !== "loading") {
+        initGallery();
+    }
+
+    // 2. Run on DOMContentLoaded for first page load
+    document.addEventListener("DOMContentLoaded", initGallery);
+
+    // 3. Re-run after Astro view transitions
+    document.addEventListener("astro:page-load", initGallery);
+
+    // 4. Fallback for after-swap (sometimes fires when page-load doesn't)
+    document.addEventListener("astro:after-swap", initGallery);
+</script>
+
+<PageLayout title="Photo Gallery" description="A sorted album gallery">
+    <Container>
+        <div class="space-y-12">
+            <div>
+                <h1
+                    class="text-3xl font-semibold tracking-tight text-black dark:text-white"
+                >
+                    Photo Gallery
+                </h1>
+                <p class="text-neutral-900/50 dark:text-white/50">
+                    {PHOTOGALLERY.DESCRIPTION}
+                </p>
+            </div>
+
+            {
+                sortedAlbums.map((album) => (
+                    <section class="space-y-4" style="margin-top: 2%;">
+                        <h2 class="text-xl font-medium text-black dark:text-white">
+                            {formatAlbumTitle(album)}
+                        </h2>
+
+                        <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                            {album.images.map((img) => (
+                                <a
+                                    href={img.src.src}
+                                    class="glightbox group relative flex aspect-square overflow-hidden rounded-lg bg-neutral-900 transition-transform hover:scale-105"
+                                    oncontextmenu="return false"
+                                >
+                                    <Image
+                                        src={img.src}
+                                        alt={`Photo from ${album.albumName}`}
+                                        width={400}
+                                        height={400}
+                                        class="h-full w-full object-cover transition-transform duration-200 group-hover:scale-105"
+                                        draggable="false"
+                                    />
+                                </a>
+                            ))}
+                        </div>
+                    </section>
+                ))
+            }
+        </div>
+    </Container>
+
+    <script>
+        import GLightbox from "glightbox";
+
+        document.addEventListener("DOMContentLoaded", () => {
+            const lightbox = GLightbox({
+                selector: ".glightbox",
+                touchNavigation: true,
+                loop: true,
+            });
+        });
+    </script>
+</PageLayout>

@@ -164,3 +164,120 @@ html #back-to-top {
 html.scrolled #back-to-top {
   @apply opacity-100 pointer-events-auto;
 }
+
+/* ============================
+   MOBILE ADJUSTMENTS
+   ============================ */
+
+@media screen and (max-width: 768px) {
+
+  /* Header: smaller padding on mobile */
+  header {
+    @apply h-10;
+    @apply flex flex-col;
+    @apply text-center;
+    @apply !py-5;
+  }
+
+  header a {
+    @apply px-2;
+    font-size: medium;
+  }
+
+  header nav {
+    @apply !gap-0 !px-0;
+  }
+
+  footer {
+    @apply py-5 px-2 text-sm;
+  }
+
+  /* Main content: less top padding because header is smaller */
+  main {
+    @apply px-4;
+  }
+
+  /* Article: readable width and padding */
+  article {
+    @apply px-0;
+  }
+
+  /* Body text: larger on mobile for readability */
+  p {
+    font-size: 0.9rem;
+    word-spacing: 2%;
+    line-height: 1.6;
+  }
+
+  /* List items: larger on mobile */
+  ul li {
+    font-size: 0.95rem;
+    line-height: 1.5;
+  }
+
+  /* Small text: slightly larger */
+  div.text-sm {
+    font-size: 0.9rem;
+    word-spacing: 1%;
+  }
+
+  /* Headings: scale down slightly */
+  h1 {
+    font-size: 1.5rem;
+  }
+
+  h2 {
+    font-size: 1.25rem;
+  }
+
+  h3 {
+    font-size: 1.1rem;
+  }
+
+  /* Links: larger tap targets */
+  article a {
+    @apply py-1;
+  }
+
+  /* Images: prevent overflow */
+  article img,
+  .prose img {
+    @apply h-auto w-full max-w-full;
+  }
+}
+
+/* ============================
+   SMALL PHONES
+   ============================ */
+
+@media screen and (max-width: 480px) {
+  main {
+    @apply px-3 py-14;
+  }
+
+  p {
+    font-size: 0.95rem;
+  }
+
+  h1 {
+    font-size: 1.35rem;
+  }
+
+  h2 {
+    font-size: 1.15rem;
+  }
+}
+
+/* ============================
+   TABLET AND UP
+   ============================ */
+
+@media screen and (min-width: 769px) {
+  main {
+    @apply px-8;
+  }
+
+  article {
+    @apply max-w-3xl mx-auto;
+  }
+}
