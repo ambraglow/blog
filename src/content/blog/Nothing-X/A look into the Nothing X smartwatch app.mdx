@@ -17,16 +17,16 @@ import { Code } from 'astro:components';
 Some time ago i decided to buy a smartwatch, mainly because i want to keep track of my health, plus it makes for a stylish accessory. While window-shopping on the interwebs, i found an auction on Aukro - basically the Czech Republic's analogue of eBay - for a **CMF Watch 3 Pro** by **[Nothing](https://us.nothing.tech/)**; the technical specs looked good enough, and i really like their design language, so i ended up placing a bid on it.
 
 In the meanwhile, i did some additional research, and a few things caught my interest:
-- An article from the Chinese slice of the internet mentions that the main processor is an Action-Tech/Semi ATS3089C[^1]. A bit more digging reveals that this line of SoCs is quite widely used by Chinese ODMs, which i thought was curious. For those who are interested: the article also shows a teardown of the watch with a detailed list of parts, so i really recommend reading it using a translator plugin like [Kagi Translate](https://chromewebstore.google.com/detail/alblebhaoakdgapamjdifdfnaicpnklm).
+- An article from the Chinese slice of the internet mentions that the main processor is an Action-Tech/Semi ATS3089C[^1]. A bit more digging reveals that this line of SoCs is quite widely used by Chinese ODMs[^2], which i thought was curious. For those who are interested: the article also shows a teardown of the watch with a detailed list of parts, so i really recommend reading it using a translator plugin like [Kagi Translate](https://chromewebstore.google.com/detail/alblebhaoakdgapamjdifdfnaicpnklm).
 
 - The watch features built-in dual-band GPS which is a desirable feature. I'd love to find a way to integrate that into my photoshoots as a way to record location for every picture.
-- Nothing advertises 13 hours of battery life, which means perfect balance for my ADHD brain. It's more likely i'll remember to grab the watch while heading outside if i have to charge it less often, i may forget to take it off the charger otherwise.
+- Nothing advertises 13 hours of battery life, which means perfect balance for my ADHD brain. If i have to recharge it less often, It's more likely i'll remember to grab the watch while heading outside. I may forget it on the charger otherwise.
 
 A few days later i ended up winning the auction, so yay - victory is mine!
 
 ### A curious cat - is a happy cat
 #### I am a simple woman: when i get my hands on new hardware, i need to **touch it** or i'll explode.<br/>
-Explained in saner terms, i always get the urge to take apart devices i own, especially if it's something new and interesting. Unfortunately, satisfying my curiosity has resulted in a few cases where i lost the subject, which is how i learned to go for the less nuclear option first if possible. <br/>
+In saner terms, i always get the urge to take apart devices i own, especially if it's something new and interesting. Unfortunately, satisfying my curiosity has resulted in a few cases where i lost the subject, which is how i learned to go for the less nuclear option first if possible. <br/>
 And luckily, just a few days after my purchase, the perfect occasion for a firmware dump popped up! Nothing released a software update: Version 1.0.77.<br/>
 A great way to satisfy my curiosity without disassembling the watch, which would consequently lose its IP rating.
 
@@ -37,23 +37,23 @@ I must say the changelog is very informative and detailed, describing the change
 Anyway, this means i finally have an occasion to tinker with my watch. By grabbing the firmware update i could definitely find out more about it. Ultimately, I started figuring out a plan so i decided to delay the update for a while.
 
 ### Packet capture in progress...
-At first, i tried to recall what worked for me in the past.<br/>
+At first i tried what worked for me in the past.<br/>
 I previously owned a Samsung Fit 3, and at the time i used [PCAPDroid](https://github.com/emanuele-f/pcapdroid) on my phone to capture traffic and analyze it.
 Samsung sent their firmware update through a non-encrypted connection using HTTP, which allowed me to simply recover the image from the capture.
 But in this case, Nothing's API sends all data encapsulated in HTTPS, rendering it useless.
 
-For my second attempt, i tried running PCAPDroid's MITM[^2] server. In the backend this runs the [mitmproxy](https://github.com/mitmproxy/mitmproxy) service. As a small side note, you're required to install [their CA certificate](https://docs.mitmproxy.org/stable/concepts/certificates/) for it to work.
+For my second attempt, i tried running PCAPDroid's MITM[^3] server. In the backend this runs the [mitmproxy](https://github.com/mitmproxy/mitmproxy) service. As a small side note, you're required to install [their CA certificate](https://docs.mitmproxy.org/stable/concepts/certificates/) for it to work.
 This method also didn't work; Nothing's app probably detected either that the certificate or the proxy was running and reported a network error when refreshing the firmware update page.
 
 All that was left was to look into the app.
 
->Another side note for anyone looking into pcapdroid, here's something from their readme: "For rooted devices, the [pcapd daemon](https://github.com/emanuele-f/PCAPdroid/tree/master/app/src/main/jni/pcapd) can be directly integrated into your APK to capture network packets."
+<p style="font-size: 12px; text-align: left; font-style: italic; margin-top: 0px;">Another side note for anyone looking into pcapdroid, here's something from their readme: "For rooted devices, the [pcapd daemon](https://github.com/emanuele-f/PCAPdroid/tree/master/app/src/main/jni/pcapd) can be directly integrated into your APK to capture network packets."</p>
 
 ### Disassembling in JADX
-My next tool of choice was [JADX](https://github.com/skylot/jadx), although i'll admit i was quite lost here, i haven't done any significant amounts of software reverse engineering to know my way around classes, structs and code.
+My next tool of choice was [JADX](https://github.com/skylot/jadx), although i'll admit i was quite lost here, i haven't done any significant amounts of software reverse engineering to know my way around decompiled classes, structs and code.
 I'd rank the experience above looking at MacOS applications in IDA though.<br/>
 
-My first instinct was to look for strings or classes that mention relevant keywords: such as "OTA", "firmware", "update", etc.
+My first instinct was to look for strings or classes that mention relevant keywords: such as *"OTA"*, *"frmware"*, *"update"*, etc.
 This kind of led me to an interesting find: Nothing has codenames for their non-smartphone category of devices under the hood, although this was ultimately useless for my research.
 I'll admit i may have ADHD, which led me to laser-focus on these names for a good part of the search, and burning really quickly through my motivation to continue.
 Thankfully, a painfully long while later, when [Kate](https://localcc.cc/) pointed out that what i was doing was stupid and gave me some directions, i was able to get back on track.
@@ -80,10 +80,10 @@ This class has a few interesting methods:
 Hooking onto `isCanLogger` and returning true for every call would enable a basic level of prints in log files. Of course, this is disabled by default.<br/>
 I also figured out how to enable printing via `adb logcat`; performing the same trick on `isDebug` is what did it. Looking at this common snippet of code is how i deduced this:
 
-```kotlin
+```java
 if (logger.isCanLogger(true)) {  
 	String str = " " + tab.get() + StringUtils.SPACE + level.get();  
-	String str2 = str;  
+	String str2 = str;
 	if (str2 != null && str2.length() != 0) {  
 		Pair<String, String> trace = logger.getTrace(depth);  
 		String strComponent1 = trace.component1();  
@@ -103,44 +103,27 @@ Yet another thing to note: any log report includes arguments and return values -
 #### Previous attempts
 Before my success, i spent more time looking around the codebase: <br/>
 i found a class named `NetWorkConstant` whose structure caught my eye:
-```kotlin
+```java
 public final class NetWorkConstant {  
     public static final String DEBUG = "DEBUG";  
     public static final String DEFAULT_HOST = "DEFAULT";  
     public static final String HEAD_SCHEME = "SCHEME_URL";  
     public static final String HOST_CMF_URL = "HOST_CMF_URL";  
-    public static final String HOST_DATA_COLLECTION = "HOST_DATA_COLLECTION";  
-    public static final String HOST_DEFAULT = "SCHEME_URL:DEFAULT";  
-    public static final String HOST_MIMI_URL = "HOST_MIMI_URL";  
-    public static final String HOST_OTA = "HOST_OTA";  
-    public static final String HOST_SUPPORT_URL = "HOST_SUPPORT_URL";  
-    public static final String HOST_ZENDESK = "SCHEME_URL:HOST_ZENDESK_LIKE_URL";  
-    public static final String HOST_ZENDESK_LIKE_URL = "HOST_ZENDESK_LIKE_URL";  
-    public static final String HOST_ZENDESK_URL = "HOST_ZENDESK_URL";  
-    public static final String URL_CONTACT_US = "https://nothing.tech/pages/contact-support";  
-    private static Function0<Boolean> isAlphaAction = null;  
-    public static final long timeOut = 60;  
-    public static final NetWorkConstant INSTANCE = new NetWorkConstant();  
-    private static HashMap<String, String> URL_MAP = new HashMap<>(); 
 	...
+}
 ```
 
 Kate suggested i find a way to print its contents at runtime, which i tried, but nothing useful was returned in the console.
 The neighbouring class `NetworkLoadRepo` has some interesting stuff too, it mentions the earlier class and calls the `getURL_MAP()` method from it, from what i understand this static block is code running before the owning class is initialized - i tried hooking it on startup but the app would always crash.
 
-```kotlin
+```java
 static {  
 	NetworkLoadRepo networkLoadRepo = new NetworkLoadRepo();  
 	INSTANCE = networkLoadRepo;  
 	Retrofit.Builder builder = new Retrofit.Builder();  
-	String str = NetWorkConstant.INSTANCE.getURL_MAP().get(NetWorkConstant.DEFAULT_HOST);  
-	Intrinsics.checkNotNull(str);  
-	Retrofit retrofitBuild = builder.baseUrl(str).client(networkLoadRepo.createOkhttpClient()).validateEagerly(true).build();  
-	Intrinsics.checkNotNullExpressionValue(retrofitBuild, "build(...)");  
-	retrofit = retrofitBuild;  
-	Object objCreate = retrofitBuild.create(NetworkLoadApiService.class);  
-	Intrinsics.checkNotNullExpressionValue(objCreate, "create(...)");  
-	apiService = (NetworkLoadApiService) objCreate;  
+	String str = NetWorkConstant.INSTANCE.getURL_MAP()
+					.get(NetWorkConstant.DEFAULT_HOST);  
+	...
 }
 ```
 
@@ -176,11 +159,29 @@ setImmediate(dumpNetworkLoadRepoFields);
 ```
 And voilà, after launching the update and running a quick search in the logs, i finally found the OTA update URL:
 ```json
-data:{"success":true,"code":200,"timestamp":1785068168836,"msg":"成功","msgCode":null,"data":{"version":"1.0.1.77","otaUrl":"https://blablabla.blablabla.net/ota/1779242462258JX402_08_ATS3089C_V1.0.1.77_GPS_V6_20260418.bin","needUpdate":1,"description":"Enhanced overall user experience","fileSize":45069312,"sha256":"","releaseNote":null,"forcedUpgrade":false,"mediaVersion":false}}
+ data: {
+	"success":true,
+	"code":200,
+	"timestamp":1785068168836,
+	"msg":"成功",
+	"msgCode":null,
+	"data": {
+		"version":"1.0.1.77",
+		"otaUrl":"https://blablabla.blablabla.net/ota/1779242462258JX402_08_ATS3089C_V1.0.1.77_GPS_V6_20260418.bin",
+		"needUpdate":1,
+		"description":"Enhanced overall user experience",
+		"fileSize":45069312,
+		"sha256":"",
+		"releaseNote":null,
+		"forcedUpgrade":false,
+		"mediaVersion":false
+	}
+ }
 ```
 
 In the next blog post i'll cover how i approached reversing the binary, so be on the look out for that!
 <p style="font-size: 12px; text-align: left; font-style: italic; margin-top: 0px; padding-top: 0px;">^^ written on Thursday 30th July 2026, let's see how long this takes me :D</p>
 
-[^1]: https://www.52audio.com/archives/265085.html 
-[^2]: Man-In-The-Middle
+[^1]: https://www.52audio.com/archives/265085.html
+[^2]: [Original Design Manufacturer](https://en.wikipedia.org/wiki/Original_design_manufacturer)
+[^3]: Man-In-The-Middle
