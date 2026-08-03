@@ -18,19 +18,19 @@ Some time ago i decided to buy a smartwatch, mainly because i want to keep track
 
 In the meanwhile, i did some additional research, and a few things caught my interest:
 - An article from the Chinese slice of the internet mentions that the main processor is an Action-Tech/Semi ATS3089C[^1]. A bit more digging reveals that this line of SoCs is quite widely used by Chinese ODMs[^2], which i thought was curious. For those who are interested: the article also shows a teardown of the watch with a detailed list of parts, so i really recommend reading it using a translator plugin like [Kagi Translate](https://chromewebstore.google.com/detail/alblebhaoakdgapamjdifdfnaicpnklm).
-
-- The watch features built-in dual-band GPS which is a desirable feature. I'd love to find a way to integrate that into my photoshoots as a way to record location for every picture.
+- The watch features built-in dual-band GPS which is pretty nice to have.<br/> I'd love to find a way to integrate that into my photoshoots as a way to record location for every picture.
 - Nothing advertises 13 hours of battery life, which means perfect balance for my ADHD brain. If i have to recharge it less often, It's more likely i'll remember to grab the watch while heading outside. I may forget it on the charger otherwise.
 
-A few days later i ended up winning the auction, so yay - victory is mine!
+A few days later i ended up winning the auction, so yay - the watch is mine! 
+It was quite cheap. So unless the Czech Post delivery guy decides to throw the package in the [Vltava](https://en.wikipedia.org/wiki/Vltava) river, or i receive a bag of bricks or something, i should have a pretty good deal for 35 Euros.
 
 ### A curious cat - is a happy cat
 #### I am a simple woman: when i get my hands on new hardware, i need to **touch it** or i'll explode.<br/>
 In saner terms, i always get the urge to take apart devices i own, especially if it's something new and interesting. Unfortunately, satisfying my curiosity has resulted in a few cases where i lost the subject, which is how i learned to go for the less nuclear option first if possible. <br/>
 And luckily, just a few days after my purchase, the perfect occasion for a firmware dump popped up! Nothing released a software update: Version 1.0.77.<br/>
-A great way to satisfy my curiosity without disassembling the watch, which would consequently lose its IP rating.
+A great way to satisfy my MacGyver cravings without disassembling the watch, which would consequently lose its IP rating.
 
-I must say the changelog is very informative and detailed, describing the changes as-"Enhanced overall user experience" - and... that's it? Seriously? What? Why!? Would it really hurt them to be a bit more detailed?
+I must say the changelog is very informative and detailed, describing the changes as - "Enhanced overall user experience" - and... that's it? Seriously? What? Why!? Would it really hurt them to be a bit more detailed?
 
 <p style="font-size: 12px; text-align: left; font-style: italic; margin-top: 0px;">ngl, this was probably written by an LLM held at gunpoint, considering the preceding text that reads: "A new update is here with enhancements and fixes. Here's what's new in this update:".</p>
 
@@ -42,7 +42,10 @@ I previously owned a Samsung Fit 3, and at the time i used [PCAPDroid](https://g
 Samsung sent their firmware update through a non-encrypted connection using HTTP, which allowed me to simply recover the image from the capture.
 But in this case, Nothing's API sends all data encapsulated in HTTPS, rendering it useless.
 
-For my second attempt, i tried running PCAPDroid's MITM[^3] server. In the backend this runs the [mitmproxy](https://github.com/mitmproxy/mitmproxy) service. As a small side note, you're required to install [their CA certificate](https://docs.mitmproxy.org/stable/concepts/certificates/) for it to work.
+For my second attempt, i tried running PCAPDroid's MITM[^3] server. In the backend this runs the [mitmproxy](https://github.com/mitmproxy/mitmproxy) service. 
+
+<p style="font-size: 12px; text-align: left; font-style: italic; margin-top: 0px; padding-top: 0px;">As a small side note, you're required to install <a href="https://docs.mitmproxy.org/stable/concepts/certificates/">their CA certificate for it to work.</a></p>
+
 This method also didn't work; Nothing's app probably detected either that the certificate or the proxy was running and reported a network error when refreshing the firmware update page.
 
 All that was left was to look into the app.
@@ -54,7 +57,9 @@ My next tool of choice was [JADX](https://github.com/skylot/jadx), although i'll
 I'd rank the experience above looking at MacOS applications in IDA though.<br/>
 
 My first instinct was to look for strings or classes that mention relevant keywords: such as *"OTA"*, *"frmware"*, *"update"*, etc.
-This kind of led me to an interesting find: Nothing has codenames for their non-smartphone category of devices under the hood, although this was ultimately useless for my research.
+This kind of led me to an interesting find: 
+	Nothing has codenames for their watches and earbuds in their codebase, just like their smartphones, although this was ultimately useless for my research.
+
 I'll admit i may have ADHD, which led me to laser-focus on these names for a good part of the search, and burning really quickly through my motivation to continue.
 Thankfully, a painfully long while later, when [Kate](https://localcc.cc/) pointed out that what i was doing was stupid and gave me some directions, i was able to get back on track.
 
@@ -62,11 +67,11 @@ This is when i decided i was going to try a more practical approach and hook met
 Using Frida is pretty easy, all i had to do was install the server service on my phone following [the guide on their website](https://frida.re/docs/android/).
 I unfortunately fell into the javascript scripting hellhole soon after, i despise every second i had to write js. 
 I used LLMs to aid me in writing a few drafts, then picked bits and pieces here and there that became my final script.
-A lot of the reversing involved going through network-request and related code, hooking and hoping something will print when running the app.
+A lot of the reversing involved going through network-request related code, hooking and hoping something will print when running the app.
 
 The process looked a bit like this:
-1. Find a `function` or `class` that looks promising.
-2. Modify my script to hook it or one of its methods, and print a simple "program passed through here" message.
+1. Find a function or class that looks promising.
+2. Modify my script to hook one of its methods, and print a simple "program passed through here" message.
 3. Repeat.
 
 After a good bit of repeating the process, i ended up settling on `com.nothing.log.Logger`, as evidence points to it being responsible for logging across the app.
@@ -101,8 +106,9 @@ if (logger.isCanLogger(true)) {
 Yet another thing to note: any log report includes arguments and return values - and this is quite useful for me! It could mean that the OTA update URL ends up right in the logs.
 
 #### Previous attempts
-Before my success, i spent more time looking around the codebase: <br/>
-i found a class named `NetWorkConstant` whose structure caught my eye:
+Before my success, i spent more time looking around the codebase and<br/>
+found a class named `NetWorkConstant` whose structure caught my eye:
+
 ```java
 public final class NetWorkConstant {  
     public static final String DEBUG = "DEBUG";  
@@ -113,8 +119,10 @@ public final class NetWorkConstant {
 }
 ```
 
-Kate suggested i find a way to print its contents at runtime, which i tried, but nothing useful was returned in the console.
-The neighbouring class `NetworkLoadRepo` has some interesting stuff too, it mentions the earlier class and calls the `getURL_MAP()` method from it, from what i understand this static block is code running before the owning class is initialized - i tried hooking it on startup but the app would always crash.
+I thought i'd find a way to print its contents at runtime, but nothing useful returned in the console.  
+^^ fix this up
+
+The neighbouring class `NetworkLoadRepo` has some interesting stuff too, it mentions this class and calls the `getURL_MAP()` method from it, from what i understand this static block is code running before the owning class is initialized - i tried hooking it on startup but the app would always crash.
 
 ```java
 static {  
