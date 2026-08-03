@@ -119,8 +119,7 @@ public final class NetWorkConstant {
 }
 ```
 
-I thought i'd find a way to print its contents at runtime, but nothing useful returned in the console.  
-^^ fix this up
+I thought i'd find a way to print its `String` fields at runtime, but nothing useful returned in the console. Which - Duh - why did i think this would be useful at all? i don't know. The fields are static so my attempt is quite the sisyphean task. 😭
 
 The neighbouring class `NetworkLoadRepo` has some interesting stuff too, it mentions this class and calls the `getURL_MAP()` method from it, from what i understand this static block is code running before the owning class is initialized - i tried hooking it on startup but the app would always crash.
 
