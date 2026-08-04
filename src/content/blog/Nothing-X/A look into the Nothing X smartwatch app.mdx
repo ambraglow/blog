@@ -11,10 +11,16 @@ import loggermethods from './loggermethods.png';
 import loggeruse from './loggeruse.png';
 import classdirs2 from './classdirs2.png';
 import logclass from './logclasses.png';
+import watch from './watch.jpeg';
 
 import { Code } from 'astro:components';
 
-Some time ago i decided to buy a smartwatch, mainly because i want to keep track of my health, plus it makes for a stylish accessory. While window-shopping on the interwebs, i found an auction on Aukro - basically the Czech Republic's analogue of eBay - for a **CMF Watch 3 Pro** by **[Nothing](https://us.nothing.tech/)**; the technical specs looked good enough, and i really like their design language, so i ended up placing a bid on it.
+Some time ago i decided to buy a smartwatch, mainly because i want to keep track of my health, plus it makes for a stylish accessory. While window-shopping on the interwebs, i found an auction on Aukro - basically the Czech Republic's analogue of eBay - for a **CMF Watch 3 Pro** by **[Nothing](https://us.nothing.tech/)**; the technical specs looked good enough, and i really liked its design, so i ended up placing a bid on it.
+
+<div class="flex flex-col"> 
+	<Image src={watch} alt="" style="width:50%;"/>
+	<p style="font-size: 10px; text-align: center; font-style: italic; margin-top: 0px;">a picture of the watch, worn on my wrist after i received it</p>
+</div>
 
 In the meanwhile, i did some additional research, and a few things caught my interest:
 - An article from the Chinese slice of the internet mentions that the main processor is an Action-Tech/Semi ATS3089C[^1]. A bit more digging reveals that this line of SoCs is quite widely used by Chinese ODMs[^2], which i thought was curious. For those who are interested: the article also shows a teardown of the watch with a detailed list of parts, so i really recommend reading it using a translator plugin like [Kagi Translate](https://chromewebstore.google.com/detail/alblebhaoakdgapamjdifdfnaicpnklm).
@@ -50,7 +56,7 @@ This method also didn't work; Nothing's app probably detected either that the ce
 
 All that was left was to look into the app.
 
-<p style="font-size: 12px; text-align: left; font-style: italic; margin-top: 0px;">Another side note for anyone looking into pcapdroid, here's something from their readme: "For rooted devices, the [pcapd daemon](https://github.com/emanuele-f/PCAPdroid/tree/master/app/src/main/jni/pcapd) can be directly integrated into your APK to capture network packets."</p>
+<p style="font-size: 12px; text-align: left; font-style: italic; margin-top: 0px;">Another side note for anyone looking into pcapdroid, here's something from their readme: "For rooted devices, the <a href="https://github.com/emanuele-f/PCAPdroid/tree/master/app/src/main/jni/pcapd">pcapd daemon</a> can be directly integrated into your APK to capture network packets."</p>
 
 ### Disassembling in JADX
 My next tool of choice was [JADX](https://github.com/skylot/jadx), although i'll admit i was quite lost here, i haven't done any significant amounts of software reverse engineering to know my way around decompiled classes, structs and code.
@@ -103,7 +109,7 @@ if (logger.isCanLogger(true)) {
 	}  
 }
 ```
-Yet another thing to note: any log report includes arguments and return values - and this is quite useful for me! It could mean that the OTA update URL ends up right in the logs.
+Lastly, it's important to note: any log report includes arguments and return values - and this is quite useful for me! It could mean that the OTA update URL ends up right in the logs.
 
 #### Previous attempts
 Before my success, i spent more time looking around the codebase and<br/>
@@ -189,6 +195,6 @@ And voilà, after launching the update and running a quick search in the logs, i
 In the next blog post i'll cover how i approached reversing the binary, so be on the look out for that!
 <p style="font-size: 12px; text-align: left; font-style: italic; margin-top: 0px; padding-top: 0px;">^^ written on Thursday 30th July 2026, let's see how long this takes me :D</p>
 
-[^1]: https://www.52audio.com/archives/265085.html
+[^1]: https://www.toutiao.com/article/7589104804112024098/?wid=1785830478644
 [^2]: [Original Design Manufacturer](https://en.wikipedia.org/wiki/Original_design_manufacturer)
 [^3]: Man-In-The-Middle
